@@ -10,6 +10,7 @@ package com.rarediscovery.services.filters;
  * @author usaa_developer
  */
 public class Word {
+    public static final String NOTHING = "";
     protected static final String SPACE = " ";
     String value;
 

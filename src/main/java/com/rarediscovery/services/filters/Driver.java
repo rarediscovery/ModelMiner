@@ -42,8 +42,11 @@ public class Driver {
         String t5 = new StringFilter("1", null).removeLine(t4);
         String t6 = new StringFilter("                   1         2 ", null).removeLine(t5);
         //String t7 = new StringFilter("AMMSYN", " C\r").select(t6);
-        //String t7 = new StringFilter("AMMSYN", " C\r").select(t6);
-        log(t6);
+        //String t7 = new StringFilter("STREAM", "           ETHANE").selectInclusive(t6);
+        //String t8 = new StringFilter("EQUILIBRIUM", "OUTLET CONV").selectPair(t7);
+        //String t9 = new StringFilter(" STREAM ", " FLOW RATE").selectPair(t6);
+        String t10 = new StringFilter(" HYDROGEN  ", " NITROGEN").selectPairAttribute(t6);
+        log(t10);
     }
 
     private static void log(String from) {

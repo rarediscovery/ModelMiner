@@ -5,14 +5,11 @@ import static com.rarediscovery.services.filters.Filter.FilterState.Continue;
 import static com.rarediscovery.services.filters.Filter.FilterState.Matched;
 import static com.rarediscovery.services.filters.Filter.FilterState.NoMatchFound;
 import com.rarediscovery.services.filters.Word.MatchResult;
-import static com.rarediscovery.services.filters.Word.SPACE;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
@@ -27,6 +24,12 @@ public class StringFilter implements Filter
 {
     String originalMessage,
            startTag , endTag;
+    
+    public StringFilter from(String msg)
+    {
+        this.originalMessage = msg;
+        return this;
+    }
     
     public StringFilter(String start, String end) 
     {
@@ -86,6 +89,181 @@ public class StringFilter implements Filter
              currentKey++;
            }
        }
+              
+        return finalResult.toString();
+    }
+        
+    public String selectPair(String msg)
+    {
+        String[] multiLineText = msg.split("\n"); 
+        
+        int inputDataLength = multiLineText.length;
+        log(" *** Input Data length = " + inputDataLength);
+               
+        // Select items fromInputString input data
+        StringBuffer finalResult = new  StringBuffer();
+        String lp = null , rp = null;
+        int j =0;
+        
+        for(String i: multiLineText)
+        {
+            if (i.contains(startTag))
+            {
+               //echo(i);
+               lp = i;
+            }
+            
+            if (i.contains(endTag))
+            {
+               //echo(i);
+               rp = i;
+            }
+            
+            if (lp != null && rp != null)
+            {
+                
+                finalResult.append(lp.replaceAll("\r", Word.NOTHING) + " ; " + rp.replaceAll("\r", Word.NOTHING) + NL);
+                lp=null;
+                rp=null;
+                j++;
+            }
+        }
+         
+        log(String.format(" Total of %d pairs were found ! ",j));
+        
+        return finalResult.toString();
+    }    
+    
+    
+    public String selectManyAttributes(String msg)
+    {
+        String[] multiLineText = msg.split("\n"); 
+        
+        int inputDataLength = multiLineText.length;
+        log(" *** Input Data length = " + inputDataLength);
+               
+        // Select items fromInputString input data
+        StringBuffer finalResult = new  StringBuffer();
+        String lp = null , rp = null;
+        int j =0;
+        
+        for(String i: multiLineText)
+        {
+            if (i.trim().startsWith(startTag.trim()))
+            {
+               //echo(i);
+               lp = i;
+            }
+            
+            if (i.trim().startsWith(endTag.trim()))
+            {
+               //echo(i);
+               rp = i;
+            }
+            
+            if (lp != null && rp != null)
+            {
+                
+                finalResult.append(lp.replaceAll("\r", Word.NOTHING) + " ; " + rp.replaceAll("\r", Word.NOTHING) + NL);
+                lp=null;
+                rp=null;
+                j++;
+            }
+        }
+         
+        log(String.format(" Total of %d pairs were found ! ",j));
+        
+        return finalResult.toString();
+    }   
+    
+    public String selectPairAttribute(String msg)
+    {
+        String[] multiLineText = msg.split("\n"); 
+        
+        int inputDataLength = multiLineText.length;
+        log(" *** Input Data length = " + inputDataLength);
+               
+        // Select items fromInputString input data
+        StringBuffer finalResult = new  StringBuffer();
+        String lp = null , rp = null;
+        int j =0;
+        
+        for(String i: multiLineText)
+        {
+            if (i.trim().startsWith(startTag.trim()))
+            {
+               //echo(i);
+               lp = i;
+            }
+            
+            if (i.trim().startsWith(endTag.trim()))
+            {
+               //echo(i);
+               rp = i;
+            }
+            
+            if (lp != null && rp != null)
+            {
+                
+                finalResult.append(lp.replaceAll("\r", Word.NOTHING) + " ; " + rp.replaceAll("\r", Word.NOTHING) + NL);
+                lp=null;
+                rp=null;
+                j++;
+            }
+        }
+         
+        log(String.format(" Total of %d pairs were found ! ",j));
+        
+        return finalResult.toString();
+    }    
+    
+    
+    public String selectInclusive(String msg)
+    {
+        String[] multiLineText = msg.split("\n"); 
+        
+        int inputDataLength = multiLineText.length;
+        log(" *** Input Data length = " + inputDataLength);
+        
+        List<Integer> startTagIndex = new ArrayList<>();
+        List<Integer> endTagIndex = new ArrayList<>();
+        int j=0;
+        
+        for(String i: multiLineText)
+        {
+            j++;                     
+            if (i.contains(startTag))
+            {
+               //echo(i);
+               startTagIndex.add(j);
+            }
+            
+            if (i.startsWith(endTag))
+            {
+               //echo(i);
+               endTagIndex.add(j);
+            }
+        }
+        
+        log(String.format(" Matched Items : Start Tags = %d ; End Tags = %d ", startTagIndex.size(), endTagIndex.size()));
+        SortedMap<Integer,Integer> keysToSelect = createRangeMapFromLists(startTagIndex, endTagIndex);
+        
+        log(" -- Map of line items to select -- ");
+        log(keysToSelect.toString());
+        log(" ----------------------------------- ");
+        
+        // Select items fromInputString input data
+        StringBuffer finalResult = new  StringBuffer();
+        int currentKey = 0; 
+        for(Integer jumpKey : keysToSelect.keySet())
+        {
+           currentKey = jumpKey;
+           while(currentKey <= keysToSelect.get(jumpKey))
+           {
+             finalResult.append(multiLineText[currentKey] + NL);
+             currentKey++;
+           }
+        }
               
         return finalResult.toString();
     }
