@@ -7,7 +7,7 @@ package com.rarediscovery.services.ui;
 
 import com.rarediscovery.services.logic.Delimiters;
 import com.rarediscovery.services.logic.TextReader;
-import com.rarediscovery.services.logic.Filter;
+import com.rarediscovery.services.filters.OldFilter;
 import com.rarediscovery.services.model.DataPage;
 import com.rarediscovery.services.ui.Group.ID;
 
@@ -141,7 +141,7 @@ public class SimulatorAppWindow extends GenericWindow {
                    useIO().addData("page.number", 0);
                 }
                     
-                Filter filter = new Filter();
+                OldFilter filter = new OldFilter();
                 filter.exclude(1);
                 
                 useIO().show("content.info", dataPages.get(0).get(filter));
@@ -200,7 +200,7 @@ public class SimulatorAppWindow extends GenericWindow {
                if ( pageNumber < Integer.MAX_VALUE
                     && useIO().getData("list.of.data.page") != null) 
                {
-                   int d = useIO().displayPage(pageNumber+1, new Filter());
+                   int d = useIO().displayPage(pageNumber+1, new OldFilter());
                     //update screen for page loaded
                    useIO().changeValue("page.number", "" +d);
                    useIO().addData("page.number", d);
@@ -217,7 +217,7 @@ public class SimulatorAppWindow extends GenericWindow {
                if ( pageNumber < Integer.MAX_VALUE
                     && useIO().getData("list.of.data.page") != null) 
                {
-                   int d = useIO().displayPage(pageNumber-1, new Filter());
+                   int d = useIO().displayPage(pageNumber-1, new OldFilter());
                    //update screen for page loaded
                    useIO().changeValue("page.number", "" +d);
                    useIO().addData("page.number", d);

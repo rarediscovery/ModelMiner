@@ -3,8 +3,10 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.rarediscovery.services.logic;
+package com.rarediscovery.services.filters;
 
+import com.rarediscovery.services.logic.BucketList;
+import com.rarediscovery.services.logic.Delimiters;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.StringTokenizer;
@@ -13,30 +15,54 @@ import java.util.StringTokenizer;
  *
  * @author usaa_developer
  */
-public class Filter 
+public class OldFilter 
 {
     int next = 0;
-    
-    String leftKey, rightKey;
+ 
     String input, output;    
-    Map<Integer, Order> executionOrder;
+    Map<Integer, Instruction> executionOrder;
 
-    private static class Order 
+    private static class Instruction 
     {
         Qualifier[] qualifiers;
         Operator method;
-        public Order() {
-        }
-
-        public Order(Operator operator, Qualifier...q) {
-            this.method = method;
+        
+        public Instruction(Operator operator, Qualifier...q) 
+        {
+            this.method = operator;
             this.qualifiers =q;
         }
 
-        public Operator getMethod() {
+        public Operator getOperator() {
             return method;
         }
+
+        public Qualifier[] getQualifiers() {
+            return qualifiers;
+        } 
+        
+        public boolean matches(String item){
+            
+           for (Qualifier qf : qualifiers)
+           {
+                if (Qualifier.AnyStringThatBeginsWith.equals(qf))
+                {
+                    return item.startsWith(qf.getValue());
+                }
+                
+                if (Qualifier.AnyStringThatContains.equals(qf))
+                {
+                    return item.contains(qf.getValue());
+                }
+                
+                if (Qualifier.AnyStringThatEndsWith.equals(qf))
+                {
+                    return item.endsWith(qf.getValue());
+                }
+            }
            
+           return false;
+        }
     }
        
     enum Operator{
@@ -66,39 +92,19 @@ public class Filter
         }
     }
     
-    public Filter(String newValue) 
+    public OldFilter(String newValue) 
     {
         input = newValue;
         executionOrder = new HashMap<>();
     }
        
-    /**
-     * Looks at a set of lines of text and ignores matching string values <br>
-     * 
-     * @param startingText 
-     * @param endingText 
-     * @return 
-     */
-    public Filter using(String startingText , String endingText)
+    public OldFilter by(Operator by , Qualifier...qualifiers)
     {
-        leftKey = startingText;
-        rightKey = endingText;
-        
-        return this;
-    }
-
-     public Filter using(String newValue){
-        leftKey = newValue;
-        return this;
-    }
-      
-    public Filter by(Operator by , Qualifier...qualifiers)
-    {
-       executionOrder.put(next++, new Order(leftKey, rightKey, by));
+       executionOrder.put(next++, new Instruction(by,qualifiers));
        return this;
     }
     
-    public Filter apply()
+    public OldFilter apply()
     {
         if (executionOrder.isEmpty()) 
         {
@@ -112,35 +118,35 @@ public class Filter
         for(int i : executionOrder.keySet())
         {
             
-            tempIn = tempOut; // Pipe output as new Input
-           Order order = executionOrder.get(i);
-           switch (order.method)
+           tempIn = tempOut; // Pipe output as new Input
+           Instruction instruction = executionOrder.get(i);
+           switch (instruction.getOperator())
            {
                case Including:
-                   tempOut = extract(tempIn,order);
+                   tempOut = extract(tempIn,instruction);
                    break;
                    
                case Excluding:
-                   tempOut = exclude(tempIn,order);
+                   tempOut = exclude(tempIn,instruction);
                    break;
                    
                case Slicing:
-                   tempOut = split(tempIn,order);
+                   tempOut = split(tempIn,instruction);
                    break;
                    
                case ColumnDecomposition:
-                   tempOut = decompose(tempIn,order);
+                   tempOut = decompose(tempIn,instruction);
                    break;
            }
         }
         
-        output = tempOut;  // Send the last output to the caller
+       output = tempOut;  // Send the last output to the caller
        return this;
     }
     
-    private String extract(String in, Order order) 
+    private String extract(String in, Instruction order) 
     {
-        System.out.println(" -- start extracting ......");
+        System.out.println(" -- Start extracting ......");
         
         StringTokenizer tokenizer = new StringTokenizer(in, Delimiters.NewLine);
                 
@@ -155,7 +161,7 @@ public class Filter
 
            if ( lineItem != null 
                 && ! collectNow
-                && lineItem.contains(order.getStartsWith()))
+                && order.matches(lineItem))
            {
                collectNow = true;
            }
@@ -165,7 +171,7 @@ public class Filter
              buffer.append(lineItem + Delimiters.NewLine);
            }
            
-           if (collectNow &&  lineItem.contains(order.getEndsWith()))
+           if (collectNow &&  order.matches(lineItem))
            {
                collectNow = false;
                continue;
@@ -182,11 +188,9 @@ public class Filter
         }
     }
     
-     private String exclude(String in, Order order) 
+     private String exclude(String in, Instruction order) 
      {
-       say(" [Excluding] ",
-           " Starting with " + order.getStartsWith(),
-           " Ending with " + order.getEndsWith());
+       say(" [Excluding] ");
        
        StringTokenizer tokenizer = new StringTokenizer(in, Delimiters.NewLine);
                 
@@ -201,7 +205,7 @@ public class Filter
 
            if ( lineItem != null 
                 && ! ignoreNow
-                && lineItem.startsWith(order.getStartsWith()))
+                && order.matches(lineItem))
            {
                ignoreNow = true;
            }
@@ -211,7 +215,7 @@ public class Filter
             buffer.append(lineItem + Delimiters.NewLine);
            }
                         
-           if (ignoreNow &&  lineItem.endsWith(order.getEndsWith()))
+           if (ignoreNow &&  order.matches(lineItem))
            {
                ignoreNow = false;
                continue;
@@ -221,10 +225,9 @@ public class Filter
 	return buffer.toString(); 
     }
 
-    private String split(String in, Order order) 
+    private String split(String in, Instruction order) 
     {
-        say(" [Splitting]  " ,
-            " Using " + order.getStartsWith());
+        say(" [Splitting]" );
         
         StringTokenizer tokenizer = new StringTokenizer(in, Delimiters.NewLine);
                 
@@ -239,7 +242,7 @@ public class Filter
            lineItem = tokenizer.nextToken(); 
 
            if ( lineItem != null 
-                   && lineItem.contains(order.getStartsWith()))
+                   && order.matches(lineItem))
             {
                matchId += 1;  // trigger clear buffer
 
@@ -261,11 +264,9 @@ public class Filter
         return bigBuffer.toString();
     }
       
-    private String decompose(String in, Order order) {
+    private String decompose(String in, Instruction order) {
         
-        say(" [ColumnDecomposition]  " ,
-            " Start Marker " + order.getStartsWith(),
-            " End Marker " + order.getEndsWith());
+        say(" [ColumnDecomposition]  ");
         
         StringTokenizer tokenizer = new StringTokenizer(in, Delimiters.NewLine);
                 
@@ -273,15 +274,13 @@ public class Filter
         StringBuffer buffer = new StringBuffer();
         BucketList  bucketList = new BucketList();
 
-        int matchId = 0;
 
         while(tokenizer.hasMoreTokens())
         {
            lineItem = tokenizer.nextToken(); 
-           String[] header ;
            
            if ( lineItem != null 
-                   && lineItem.contains(order.getStartsWith()))
+                   && order.matches(lineItem))
             {
                 // Make the trigger the column marker
                 bucketList.add(deflate(lineItem));

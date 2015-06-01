@@ -5,7 +5,7 @@
  */
 package com.rarediscovery.services.ui;
 
-import com.rarediscovery.services.logic.Filter;
+import com.rarediscovery.services.filters.OldFilter;
 import com.rarediscovery.services.model.DataPage;
 
 import java.util.HashMap;
@@ -96,7 +96,7 @@ public class PageIO {
         this.outputTarget.get(key).setText(msg);
     }
 
-    public int displayPage(int index, Filter filter) 
+    public int displayPage(int index, OldFilter filter) 
     {
         List<DataPage> dataPages = (List<DataPage>) getData("list.of.data.page");
         int pageIndex = Math.abs(index % dataPages.size());

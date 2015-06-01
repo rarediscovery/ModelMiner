@@ -6,7 +6,7 @@
 package com.rarediscovery.services.model;
 
 
-import com.rarediscovery.services.logic.Filter;
+import com.rarediscovery.services.filters.OldFilter;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.StringTokenizer;
@@ -45,7 +45,7 @@ public class DataPage implements Comparable<DataPage>
             return text;
         }
 
-        public String get(Filter f)
+        public String get(OldFilter f)
         {
             if (f == null ){ return get(); }
 

@@ -1,7 +1,7 @@
 package com.rarediscovery.services.logic;
 
-import static com.rarediscovery.services.logic.Filter.Operator.Excluding;
-import static com.rarediscovery.services.logic.Filter.Qualifier.*;
+import com.rarediscovery.services.filters.OldFilter;
+
 import com.rarediscovery.services.model.Stream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -153,37 +153,48 @@ public class TextReader {
 	    return text;
 	}
 	        
+        /**
+         * 
+         *   given(text).excludeFrom("start").to("end");
+         *   given(text).includeFrom("start").to("end");
+         * 
+         * @param args 
+         */
+        
        public static void main(String[] args) 
        {
        
            TextReader reader = new TextReader(new File("C:\\Users\\usaa_developer\\Desktop\\Reader Project\\sample.pdf"));
-            String t  = reader.convertPDFToString();
+            String msg  = reader.convertPDFToString();
             
-            Filter f = new Filter("").by(Excluding, 
-                                        AnyStringThatBeginsWith.value("<begin>") , 
-                                        AnyStringThatEndsWith.value(""));
+            String t1 =  new OldFilter(msg)
+                                .by(Excluding, 
+                                    AnyStringThatBeginsWith.value("1") , 
+                                    AnyStringThatEndsWith.value("-----\r"))
+                                .apply()
+                                .getResult();
             
-            String t1 = new Filter(t)
-                                    .using("1", "-----\r").by(Filter.Operator.Excluding)
-                                    .using("                   1", "X....0....X....0\r")
-                                    .by(Filter.Operator.Excluding)
+            String t2 = new OldFilter(t1)
+                                        .by(Excluding, 
+                                        AnyStringThatBeginsWith.value("                   1") , 
+                                        AnyStringThatEndsWith.value("X....0....X....0\r"))
+                                        .apply()
+                                        .getResult();
+                                  
+            String t3 =  new OldFilter(t2)
+                                    .by(OldFilter.Operator.Slicing , AnyStringThatBeginsWith.value("PROCESS FLOW STREAM RECORD"))
                                     .apply()
                                     .getResult();
-            String t2 =  new Filter(t1)
-                                    .using("PROCESS FLOW STREAM RECORD")
-                                    .by(Filter.Operator.Slicing)
-                                    .apply()
-                                    .getResult();
             
             
-            
-            String t3 =  new Filter(t2)
+             /*
+            String t3 =  new OldFilter(t2)
                                     .using("STREAM ID ", "COMPONENT")
-                                    .by(Filter.Operator.Including)
+                                    .by(OldFilter.Operator.Including)
                                     .apply()
                                     .getResult();
-                   
-            System.out.println(t3);
+            */       
+            System.out.println(t2);
        
     }
 }
