@@ -5,6 +5,7 @@ import static com.rarediscovery.services.filters.Filter.FilterState.Continue;
 import static com.rarediscovery.services.filters.Filter.FilterState.Matched;
 import static com.rarediscovery.services.filters.Filter.FilterState.NoMatchFound;
 import com.rarediscovery.services.filters.Word.MatchResult;
+import static com.rarediscovery.services.logic.Functions.deflate;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -25,11 +26,15 @@ public class StringFilter implements Filter
     String originalMessage,
            startTag , endTag;
     
-    public StringFilter from(String msg)
+    public StringFilter using(String msg)
     {
         this.originalMessage = msg;
         return this;
     }
+
+    public StringFilter() {
+    }
+    
     
     public StringFilter(String start, String end) 
     {
@@ -135,38 +140,44 @@ public class StringFilter implements Filter
     }    
     
     
-    public String selectManyAttributes(String msg)
+    public String selectManyAttributes(String...attributes)
     {
-        String[] multiLineText = msg.split("\n"); 
+        if (originalMessage == null){ return "";}
+        
+        String[] multiLineText = originalMessage.split("\n"); 
         
         int inputDataLength = multiLineText.length;
         log(" *** Input Data length = " + inputDataLength);
                
         // Select items fromInputString input data
         StringBuffer finalResult = new  StringBuffer();
-        String lp = null , rp = null;
+        
+        // Number of attributes needed to match
+        String[] lp = new String[attributes.length];
+        
         int j =0;
         
         for(String i: multiLineText)
         {
-            if (i.trim().startsWith(startTag.trim()))
+            for(int k=0;k< lp.length;k++)
             {
-               //echo(i);
-               lp = i;
+                if (i.toLowerCase().trim().contains(attributes[k].toLowerCase().trim()))
+                {
+                    //echo(i);
+                    lp[k] = i;
+                    
+                }
             }
-            
-            if (i.trim().startsWith(endTag.trim()))
+                       
+            if (isFullyAssigned(lp))
             {
-               //echo(i);
-               rp = i;
-            }
-            
-            if (lp != null && rp != null)
-            {
-                
-                finalResult.append(lp.replaceAll("\r", Word.NOTHING) + " ; " + rp.replaceAll("\r", Word.NOTHING) + NL);
-                lp=null;
-                rp=null;
+                for (String item : lp) 
+                {
+                  finalResult.append(item.trim() + " ; " );
+                }
+                finalResult.append(NL);
+                 
+                lp = new String[attributes.length];
                 j++;
             }
         }
@@ -175,6 +186,19 @@ public class StringFilter implements Filter
         
         return finalResult.toString();
     }   
+
+    protected boolean isFullyAssigned(String[] lp) 
+    {
+        if (lp == null) { return false;}
+        
+        for (String item : lp) 
+        {
+            if (item == null) {
+                return false;
+            }
+        }
+        return true;
+    }
     
     public String selectPairAttribute(String msg)
     {

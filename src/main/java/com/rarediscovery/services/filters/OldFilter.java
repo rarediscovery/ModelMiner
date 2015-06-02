@@ -7,6 +7,7 @@ package com.rarediscovery.services.filters;
 
 import com.rarediscovery.services.logic.BucketList;
 import com.rarediscovery.services.logic.Delimiters;
+import static com.rarediscovery.services.logic.Functions.deflate;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.StringTokenizer;
@@ -289,29 +290,7 @@ public class OldFilter
         return bucketList.get().toString();
     }
     
-    /**
-     * Remove consecutive empty characters from a line item
-     * 
-     * @param data
-     * @return Deflated string
-     */
-    private String deflate(String data)
-    {
-        char[] newData = new char[data.length()];
-        int i =0;
-        char previousSymbol = ' ';
-
-        for( char currentSymbol : data.toCharArray())
-        {
-            if ( previousSymbol == currentSymbol && currentSymbol == ' ' ){
-                continue;
-            }
-            newData[i++] = currentSymbol;
-            previousSymbol = currentSymbol;
-        }
-
-        return new String(newData);
-    }
+    
     
     
     public String getResult()

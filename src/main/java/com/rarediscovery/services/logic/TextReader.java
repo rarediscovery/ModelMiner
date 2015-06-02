@@ -161,40 +161,5 @@ public class TextReader {
          * @param args 
          */
         
-       public static void main(String[] args) 
-       {
-       
-           TextReader reader = new TextReader(new File("C:\\Users\\usaa_developer\\Desktop\\Reader Project\\sample.pdf"));
-            String msg  = reader.convertPDFToString();
-            
-            String t1 =  new OldFilter(msg)
-                                .by(Excluding, 
-                                    AnyStringThatBeginsWith.value("1") , 
-                                    AnyStringThatEndsWith.value("-----\r"))
-                                .apply()
-                                .getResult();
-            
-            String t2 = new OldFilter(t1)
-                                        .by(Excluding, 
-                                        AnyStringThatBeginsWith.value("                   1") , 
-                                        AnyStringThatEndsWith.value("X....0....X....0\r"))
-                                        .apply()
-                                        .getResult();
-                                  
-            String t3 =  new OldFilter(t2)
-                                    .by(OldFilter.Operator.Slicing , AnyStringThatBeginsWith.value("PROCESS FLOW STREAM RECORD"))
-                                    .apply()
-                                    .getResult();
-            
-            
-             /*
-            String t3 =  new OldFilter(t2)
-                                    .using("STREAM ID ", "COMPONENT")
-                                    .by(OldFilter.Operator.Including)
-                                    .apply()
-                                    .getResult();
-            */       
-            System.out.println(t2);
-       
-    }
+      
 }

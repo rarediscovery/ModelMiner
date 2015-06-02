@@ -45,8 +45,16 @@ public class Driver {
         //String t7 = new StringFilter("STREAM", "           ETHANE").selectInclusive(t6);
         //String t8 = new StringFilter("EQUILIBRIUM", "OUTLET CONV").selectPair(t7);
         //String t9 = new StringFilter(" STREAM ", " FLOW RATE").selectPair(t6);
-        String t10 = new StringFilter(" HYDROGEN  ", " NITROGEN").selectPairAttribute(t6);
-        log(t10);
+        //String t10 = new StringFilter(" HYDROGEN  ", " NITROGEN").selectPairAttribute(t6);
+        
+        
+         //String t11 = new StringFilter().using(t1).selectManyAttributes("STREAM ID","  ENTHALPY");
+         //String t12 = new StringFilter().using(t1).selectManyAttributes("ENTHALPY" , "TEMPERATURE" , "PRESSURE");
+         //String t12 = new StringFilter().using(t1).selectManyAttributes("STREAM ID", "ENTHALPY MM KCAL/HR" , "TEMPERATURE" , "PRESSURE");
+        //String t12 = new StringFilter().using(msg).selectManyAttributes("STREAM ID", "ENTHALPY MM KCAL/HR" , "TEMPERATURE" , "PRESSURE","HYDROGEN" , "NITROGEN " , "OXYGEN ");
+        // String t12 = new StringFilter().using(msg).selectManyAttributes("STEP","CRITICAL TEMPERATURE, C","CRITICAL PRESSURE, KGF/CM2" ,"INLET GAS FLOW, ACFM");
+         String t12 = new StringFilter().using(msg).selectManyAttributes("STEP","EQUILIBRIUM CONSTANT @ OUTLET TEMP", "% N2 CONVERTED AT EQUILIBRIUM","OUTLET CONV OF N2","OUTLET TEMP ");
+        log(t12);
     }
 
     private static void log(String from) {
