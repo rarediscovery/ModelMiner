@@ -168,7 +168,7 @@ public class StringFilterUI extends javax.swing.JPanel {
         jLabel1.setFont(new java.awt.Font("Segoe Print", 1, 24)); // NOI18N
         jLabel1.setForeground(new java.awt.Color(255, 51, 51));
         jLabel1.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        jLabel1.setText("Simulation Data Extraction Engine");
+        jLabel1.setText("Data Model Analysis Engine");
         jLabel1.setToolTipText("");
 
         javax.swing.GroupLayout headerPanelLayout = new javax.swing.GroupLayout(headerPanel);
@@ -438,7 +438,7 @@ public class StringFilterUI extends javax.swing.JPanel {
         String msg  = reader.convertPDFToString();
         
         String result = new StringFilter()
-                .using(msg)
+                .given(msg)
                 .selectManyAttributes(criteria.toArray(new String[0]));
         
         log(result);

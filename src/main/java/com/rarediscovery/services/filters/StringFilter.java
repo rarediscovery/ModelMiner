@@ -5,7 +5,7 @@ import static com.rarediscovery.services.filters.Filter.FilterState.Continue;
 import static com.rarediscovery.services.filters.Filter.FilterState.Matched;
 import static com.rarediscovery.services.filters.Filter.FilterState.NoMatchFound;
 import com.rarediscovery.services.filters.Word.MatchResult;
-import static com.rarediscovery.services.logic.Functions.deflate;
+import static com.rarediscovery.services.logic.Functions.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -23,16 +23,26 @@ import java.util.TreeMap;
  */
 public class StringFilter implements Filter
 {
-    String originalMessage,
-           startTag , endTag;
+    String 
+            originalMessage,
+            startTag , 
+            endTag;
     
-    public StringFilter using(String msg)
+    /**
+     * Default Constructor <br>
+     */
+    public StringFilter() {}
+    
+    /**
+     * Constructor <br>
+     * 
+     * @param msg
+     * @return 
+     */
+    public StringFilter given(String msg)
     {
         this.originalMessage = msg;
         return this;
-    }
-
-    public StringFilter() {
     }
     
     
@@ -139,45 +149,99 @@ public class StringFilter implements Filter
         return finalResult.toString();
     }    
     
-    
-    public String selectManyAttributes(String...attributes)
+    public SearchResult find(SearchRequest...queryItems)
     {
+               
+        String[] lineNumberedTexts = getNumberLinedContent();
+        
+        // Build search result
+        SearchResult searchResult = new SearchResult(lineNumberedTexts);
+        
+        // Use just the first query
+        searchResult.setRequest(queryItems[0]);
+        
+        int dataLength = lineNumberedTexts.length;
+        log(" *** Number of Lines for Input Data = " + dataLength);
+              
+        // Number of attributes needed to match
+        String[] queries = new String[queryItems.length];
+        
+        Integer currentLineNumber=0;
+        
+        // Process every line
+        for(String lineItem: lineNumberedTexts)
+        {
+            // Check all input queries
+            String currentText = lineItem.toLowerCase().trim();
+            for(int k=0;k< queries.length;k++)
+            {
+                String key = queryItems[k].getSearchValue().toLowerCase().trim();
+                
+                // ------------------------------------------
+                // Perform case-insensitive match and 
+                // record index of lineitem that was matched
+                // ------------------------------------------
+                
+                if (currentText.contains(key))
+                {
+                   searchResult.add(key,currentLineNumber);
+                }
+            }
+            
+            //Next item in line
+            currentLineNumber++;
+        }
+         
+        return searchResult;
+    } 
+
+    protected String[] getNumberLinedContent() 
+    {
+        // Do not do any work if there is no target centent to process
+        if (originalMessage == null){ return new String[0];}
+        
+        // Get all messages into strings of Text w/ lineNumbers
+        return originalMessage.split("\n");
+    }
+    
+    public String selectManyAttributes(String...queryItems)
+    {
+        // Do not do any work if there is no target centent to process
         if (originalMessage == null){ return "";}
         
-        String[] multiLineText = originalMessage.split("\n"); 
+        String[] lineNumberedTexts = getNumberLinedContent(); 
         
-        int inputDataLength = multiLineText.length;
-        log(" *** Input Data length = " + inputDataLength);
-               
-        // Select items fromInputString input data
+        int dataLength = lineNumberedTexts.length;
+        log(" *** Number of Lines for Input Data = " + dataLength);
+        
         StringBuffer finalResult = new  StringBuffer();
         
         // Number of attributes needed to match
-        String[] lp = new String[attributes.length];
+        String[] queries = new String[queryItems.length];
         
         int j =0;
         
-        for(String i: multiLineText)
+        for(String lineItem: lineNumberedTexts)
         {
-            for(int k=0;k< lp.length;k++)
+            for(int k=0;k< queries.length;k++)
             {
-                if (i.toLowerCase().trim().contains(attributes[k].toLowerCase().trim()))
+                if (lineItem.toLowerCase().trim().contains(queryItems[k].toLowerCase().trim()))
                 {
                     //echo(i);
-                    lp[k] = i;
+                    queries[k] = lineItem;
                     
                 }
             }
                        
-            if (isFullyAssigned(lp))
+            if (isFullyAssigned(queries))
             {
-                for (String item : lp) 
+                for (String item : queries) 
                 {
                   finalResult.append(item.trim() + " ; " );
                 }
                 finalResult.append(NL);
                  
-                lp = new String[attributes.length];
+                queries = new String[queryItems.length];
                 j++;
             }
         }
@@ -292,24 +356,7 @@ public class StringFilter implements Filter
         return finalResult.toString();
     }
     
-    public String removeLine(String msg)
-    {
-         String[] multiLineText = msg.split("\n");
-          
-         // Remove items fromInputString input data
-         StringBuffer finalResult = new  StringBuffer();
-        
-          for(String i: multiLineText)
-          {
-              if (i.startsWith(startTag))
-              {
-                 continue;
-              }
-              finalResult.append(i + NL);
-          }
-          return finalResult.toString();
-    }
-    
+   
     
     /**
      * Split the text into multi-line text <br>
@@ -387,7 +434,8 @@ public class StringFilter implements Filter
         return finalResult.toString();
     }
 
-    protected SortedMap<Integer, Integer> createRangeMapFromLists(List<Integer> startTagIndex, List<Integer> endTagIndex) {
+    protected SortedMap<Integer, Integer> createRangeMapFromLists(List<Integer> startTagIndex, List<Integer> endTagIndex) 
+    {
         Map<Integer,Integer> temp = new HashMap<Integer, Integer>();
         int
                 leftIndex = 0 ,
@@ -484,7 +532,23 @@ public class StringFilter implements Filter
         return buffer.toString();
     }
     
-
+     public String removeLine(String msg)
+     {
+         String[] multiLineText = msg.split(NL);
+          
+         // Remove items fromInputString input data
+         StringBuffer finalResult = new  StringBuffer();
+        
+          for(String i: multiLineText)
+          {
+              if (i.startsWith(startTag))
+              {
+                 continue;
+              }
+              finalResult.append(i + NL);
+          }
+          return finalResult.toString();
+     }
     
     public void showCompleteResult()
     {
@@ -501,10 +565,7 @@ public class StringFilter implements Filter
         
     }
     
-    private static void log(String s)
-    {
-        System.out.println(s);
-    }
+ 
 
     private void echo(String i) {
         System.out.print(i);

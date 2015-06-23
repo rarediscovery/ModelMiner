@@ -7,21 +7,116 @@ package com.rarediscovery.services.filters;
 
 import com.rarediscovery.services.logic.TextReader;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CreationHelper;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
 
 /**
  *
  * @author usaa_developer
  */
-public class Driver {
-    public static void main(String[] args) {
+public class Driver 
+{
+    
+    public static void main(String[] args) 
+    {
+      //testSearchFilter();
         
+      Workbook wb = new HSSFWorkbook();
+      FileOutputStream fileOut;
+      try 
+      {
+            fileOut = new FileOutputStream("workbook.xls");
+            
+            CreationHelper createHelper = wb.getCreationHelper();
+            Sheet sheet1 = wb.createSheet("new sheet");
+            Sheet sheet2 = wb.createSheet("second sheet");
+            
+            // Create a row and put some cells in it. Rows are 0 based.
+            Row row = sheet1.createRow((short)0);
+            // Create a cell and put a value in it.
+            Cell cell = row.createCell(0);
+            cell.setCellValue(1);
+
+            // Or do it on one line.
+            row.createCell(1).setCellValue(1.2);
+            row.createCell(2).setCellValue(createHelper.createRichTextString("This is a string"));
+            row.createCell(3).setCellValue(true);
+    
+            wb.write(fileOut);
+            fileOut.close();
+      
+      } catch (FileNotFoundException ex) 
+      {
+            Logger.getLogger(Driver.class.getName()).log(Level.SEVERE, null, ex);
+      } catch (IOException ex) {
+            Logger.getLogger(Driver.class.getName()).log(Level.SEVERE, null, ex);
+        }
+     
+        
+    }
+
+    protected static void testSearchFilter() {
         //log(new StringFilter("is", "to").fromInputString("This is so good to ignore"));
         
         TextReader reader = new TextReader(new File("C:\\Users\\usaa_developer\\Desktop\\Reader Project\\sample.pdf"));
         String msg  = reader.convertPDFToString();
-         
+             
+        //testAPI(msg);
+        
+        //String t11 = new StringFilter().given(t1).selectManyAttributes("STREAM ID","  ENTHALPY");
+        //String t12 = new StringFilter().given(t1).selectManyAttributes("ENTHALPY" , "TEMPERATURE" , "PRESSURE");
+        //String t12 = new StringFilter().given(t1).selectManyAttributes("STREAM ID", "ENTHALPY MM KCAL/HR" , "TEMPERATURE" , "PRESSURE");
+        //String t12 = new StringFilter().given(msg).selectManyAttributes("STREAM ID", "ENTHALPY MM KCAL/HR" , "TEMPERATURE" , "PRESSURE","HYDROGEN" , "NITROGEN " , "OXYGEN ");
+        // String t12 = new StringFilter().given(msg).selectManyAttributes("STEP","CRITICAL TEMPERATURE, C","CRITICAL PRESSURE, KGF/CM2" ,"INLET GAS FLOW, ACFM");
+        
         /*
-        String longText = 
+        String t12 = new StringFilter()
+        .given(msg)
+        .selectManyAttributes(
+        "STEP",
+        "EQUILIBRIUM CONSTANT @ OUTLET TEMP",
+        "% N2 CONVERTED AT EQUILIBRIUM",
+        "OUTLET CONV OF N2","OUTLET TEMP ");
+        */
+        String[] searchItems = new String[]
+        {
+            "CNTRLD, SPEC, ADJSTD",//0
+            "% N2 CONVERTED AT EQUILIBRIUM",//1
+            "EQUILIBRIUM CONSTANT @ OUTLET TEMP",//2
+            "* * * * * * * * * * * * * * * * * * * * * * * * *",//3
+            "PROCESS FLOW STREAM RECORD" , //2,12,1
+            "CENTRIFUGAL COMPRESSOR INLET AND OUTLET CONDITIONS"  //5
+
+        };
+        
+        SearchRequest  request = new SearchRequest(searchItems[4]);
+        request
+                .readFrom(2)
+                .readTo(12)
+                .setFieldColumn(1)
+                .setCategories(4);
+        
+        SearchResult result = new StringFilter()
+                .given(msg)
+                .find(request);
+        
+        result.debugModels(result.buildModels().getAll());
+    }
+
+    protected static void testAPI(String msg) 
+    {
+        
+         /*
+           String longText = 
             "It is is is is is is is is a common weakness among traditional communication protocols to be vulnerable to\n" +
             "impersonation attacks. Every time this sort of protocol is executed, the system degradates\n" +
             "because of the threat of an eavesdropper listening in on the communication. Zero Knowledge\n" +
@@ -34,7 +129,6 @@ public class Driver {
         ;
         */
         
- 
         String t1 = new StringFilter("1", "X....0\r").fromInputString(msg);
         String t2 = new StringFilter("                   1", "X....0....X....0\r").fromInputString(t1);
         String t3 = new StringFilter("1", "-----------\r").fromInputString(t2);
@@ -46,15 +140,6 @@ public class Driver {
         //String t8 = new StringFilter("EQUILIBRIUM", "OUTLET CONV").selectPair(t7);
         //String t9 = new StringFilter(" STREAM ", " FLOW RATE").selectPair(t6);
         //String t10 = new StringFilter(" HYDROGEN  ", " NITROGEN").selectPairAttribute(t6);
-        
-        
-         //String t11 = new StringFilter().using(t1).selectManyAttributes("STREAM ID","  ENTHALPY");
-         //String t12 = new StringFilter().using(t1).selectManyAttributes("ENTHALPY" , "TEMPERATURE" , "PRESSURE");
-         //String t12 = new StringFilter().using(t1).selectManyAttributes("STREAM ID", "ENTHALPY MM KCAL/HR" , "TEMPERATURE" , "PRESSURE");
-        //String t12 = new StringFilter().using(msg).selectManyAttributes("STREAM ID", "ENTHALPY MM KCAL/HR" , "TEMPERATURE" , "PRESSURE","HYDROGEN" , "NITROGEN " , "OXYGEN ");
-        // String t12 = new StringFilter().using(msg).selectManyAttributes("STEP","CRITICAL TEMPERATURE, C","CRITICAL PRESSURE, KGF/CM2" ,"INLET GAS FLOW, ACFM");
-         String t12 = new StringFilter().using(msg).selectManyAttributes("STEP","EQUILIBRIUM CONSTANT @ OUTLET TEMP", "% N2 CONVERTED AT EQUILIBRIUM","OUTLET CONV OF N2","OUTLET TEMP ");
-        log(t12);
     }
 
     private static void log(String from) {

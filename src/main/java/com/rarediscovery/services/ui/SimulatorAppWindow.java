@@ -15,7 +15,7 @@ public class SimulatorAppWindow extends GenericWindow {
     
     public static void main(String[] args) {
         SimulatorAppWindow app = new SimulatorAppWindow();
-        app.setTitle("Plant Data Analytic Engine - 1.0 ");
+        app.setTitle("Plant Model Analyzer - 1.0 ");
     }
 
     public SimulatorAppWindow() {
@@ -26,7 +26,7 @@ public class SimulatorAppWindow extends GenericWindow {
    
    protected void buildUserInterface() 
    {
-       getWindow().getContentPane().add(new StringFilterUI());
+       getWindow().getContentPane().add(new ModelSelector());
        refresh();
     }
   

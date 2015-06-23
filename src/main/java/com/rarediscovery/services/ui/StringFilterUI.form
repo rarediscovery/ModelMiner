@@ -73,7 +73,7 @@
               <Color blue="33" green="33" red="ff" type="rgb"/>
             </Property>
             <Property name="horizontalAlignment" type="int" value="0"/>
-            <Property name="text" type="java.lang.String" value="Simulation Data Extraction Engine"/>
+            <Property name="text" type="java.lang.String" value="Data Model Analysis Engine"/>
             <Property name="toolTipText" type="java.lang.String" value=""/>
           </Properties>
         </Component>

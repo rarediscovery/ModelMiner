@@ -5,12 +5,20 @@
  */
 package com.rarediscovery.services.logic;
 
+import java.awt.FileDialog;
+import java.io.File;
+import java.io.FilenameFilter;
+import java.util.List;
+import javax.swing.JFrame;
+
 /**
  *
  * @author usaa_developer
  */
 public class Functions {
     
+    private static String NL = "\n";
+     
     /**
      * Remove consecutive empty characters from a line item
      * 
@@ -39,5 +47,56 @@ public class Functions {
         }
 
         return buffer.toString();
+    }
+    
+     public static String join(String[] array,int from, int to)
+     {
+         if (array == null || array.length == 0 || to < from) { return "";}
+         
+         StringBuffer buffer = new StringBuffer();
+         for(int i=from;from < array.length && i <= to; i++)
+         {
+           buffer.append( array[i] + " ");
+         }
+         
+         return buffer.toString();
+     }
+     
+    /**
+     * 
+     * @param fileExtension
+     * @return The name of file selected <br> 
+     */
+    public static String getUserSelectedFile(final String fileExtension)
+    {
+        FileDialog dialog = new FileDialog(new JFrame());
+        dialog.setFilenameFilter(
+                new FilenameFilter() 
+                {
+                    @Override
+                    public boolean accept(File dir, String name)
+                    {
+                        return name.endsWith("."+fileExtension);
+                    }
+                });
+
+        dialog.setVisible(true);
+        return dialog.getDirectory() + dialog.getFile();
+    }
+      
+      
+    public static void log(String s)
+    {
+        System.out.println(s);
+    }
+    
+    public static void logList(List<String> ls)
+    {
+        StringBuffer buffer = new StringBuffer();
+        for(String item: ls)
+        {
+           buffer.append(item + NL);
+        }
+        log(buffer.toString());
     }
 }
