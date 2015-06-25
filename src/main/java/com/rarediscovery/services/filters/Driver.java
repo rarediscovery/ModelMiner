@@ -29,37 +29,7 @@ public class Driver
     public static void main(String[] args) 
     {
       //testSearchFilter();
-        
-      Workbook wb = new HSSFWorkbook();
-      FileOutputStream fileOut;
-      try 
-      {
-            fileOut = new FileOutputStream("workbook.xls");
-            
-            CreationHelper createHelper = wb.getCreationHelper();
-            Sheet sheet1 = wb.createSheet("new sheet");
-            Sheet sheet2 = wb.createSheet("second sheet");
-            
-            // Create a row and put some cells in it. Rows are 0 based.
-            Row row = sheet1.createRow((short)0);
-            // Create a cell and put a value in it.
-            Cell cell = row.createCell(0);
-            cell.setCellValue(1);
-
-            // Or do it on one line.
-            row.createCell(1).setCellValue(1.2);
-            row.createCell(2).setCellValue(createHelper.createRichTextString("This is a string"));
-            row.createCell(3).setCellValue(true);
-    
-            wb.write(fileOut);
-            fileOut.close();
-      
-      } catch (FileNotFoundException ex) 
-      {
-            Logger.getLogger(Driver.class.getName()).log(Level.SEVERE, null, ex);
-      } catch (IOException ex) {
-            Logger.getLogger(Driver.class.getName()).log(Level.SEVERE, null, ex);
-        }
+     
      
         
     }

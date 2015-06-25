@@ -26,7 +26,7 @@ public class SimulatorAppWindow extends GenericWindow {
    
    protected void buildUserInterface() 
    {
-       getWindow().getContentPane().add(new ModelSelector());
+       getWindow().getContentPane().add(new ViewerWithMenu());
        refresh();
     }
   
