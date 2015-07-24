@@ -3,8 +3,9 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.rarediscovery.services.ui;
+package com.rarediscovery.ui;
 
+import com.rarediscovery.services.ui.PageIO;
 import java.awt.BorderLayout;
 import java.awt.LayoutManager;
 import javax.swing.JInternalFrame;

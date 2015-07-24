@@ -3,21 +3,21 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.rarediscovery.services.filters;
+package com.rarediscovery.app.client;
 
+import com.rarediscovery.data.Model;
+import com.rarediscovery.data.Models;
+import com.rarediscovery.services.filters.ResultCriteria;
+import com.rarediscovery.services.filters.SearchQuery;
+import com.rarediscovery.services.filters.SearchResult;
+import com.rarediscovery.services.filters.StringFilter;
+import com.rarediscovery.services.filters.TextParser;
+import com.rarediscovery.services.logic.Functions;
 import com.rarediscovery.services.logic.TextReader;
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import org.apache.poi.hssf.usermodel.HSSFWorkbook;
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.CreationHelper;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  *
@@ -28,10 +28,7 @@ public class Driver
     
     public static void main(String[] args) 
     {
-      //testSearchFilter();
-     
-     
-        
+      testSearchFilter();    
     }
 
     protected static void testSearchFilter() {
@@ -42,44 +39,27 @@ public class Driver
              
         //testAPI(msg);
         
-        //String t11 = new StringFilter().given(t1).selectManyAttributes("STREAM ID","  ENTHALPY");
-        //String t12 = new StringFilter().given(t1).selectManyAttributes("ENTHALPY" , "TEMPERATURE" , "PRESSURE");
-        //String t12 = new StringFilter().given(t1).selectManyAttributes("STREAM ID", "ENTHALPY MM KCAL/HR" , "TEMPERATURE" , "PRESSURE");
-        //String t12 = new StringFilter().given(msg).selectManyAttributes("STREAM ID", "ENTHALPY MM KCAL/HR" , "TEMPERATURE" , "PRESSURE","HYDROGEN" , "NITROGEN " , "OXYGEN ");
-        // String t12 = new StringFilter().given(msg).selectManyAttributes("STEP","CRITICAL TEMPERATURE, C","CRITICAL PRESSURE, KGF/CM2" ,"INLET GAS FLOW, ACFM");
         
-        /*
-        String t12 = new StringFilter()
-        .given(msg)
-        .selectManyAttributes(
-        "STEP",
-        "EQUILIBRIUM CONSTANT @ OUTLET TEMP",
-        "% N2 CONVERTED AT EQUILIBRIUM",
-        "OUTLET CONV OF N2","OUTLET TEMP ");
-        */
-        String[] searchItems = new String[]
-        {
-            "CNTRLD, SPEC, ADJSTD",//0
-            "% N2 CONVERTED AT EQUILIBRIUM",//1
-            "EQUILIBRIUM CONSTANT @ OUTLET TEMP",//2
-            "* * * * * * * * * * * * * * * * * * * * * * * * *",//3
-            "PROCESS FLOW STREAM RECORD" , //2,12,1
-            "CENTRIFUGAL COMPRESSOR INLET AND OUTLET CONDITIONS"  //5
-
-        };
+        SearchQuery query = new SearchQuery("NH3 CONVERTER TEMP AND N2 PROFILE");
+        ResultCriteria criteria = query.newCriteria();
+        criteria
+                .startReadingFrom(-3).stopReadingAt(6)
+                .skip(0).skip(1).skip(2).skip(3).skip(6)
+                .fieldIdentifierRecord(1);
         
-        SearchRequest  request = new SearchRequest(searchItems[4]);
-        request
-                .readFrom(2)
-                .readTo(12)
-                .setFieldColumn(1)
-                .setCategories(4);
-        
+       /*
+          SearchQuery query = new SearchQuery("SHIFT CONVERTER TEMP AND CO PROFILE");
+          ResultCriteria criteria = query.newCriteria();
+          criteria.startReadingFrom(2).stopReadingAt(19).fieldIdentifierRecord(1).skip(0) ;  
+       */
+       
         SearchResult result = new StringFilter()
-                .given(msg)
-                .find(request);
+                        .given(msg).execute(query);
         
-        result.debugModels(result.buildModels().getAll());
+        //result.debugModels(result.buildStreamInformationModels().getAll());
+        Models models = result.buildCustomModels(Functions.OTConverterParser);
+        
+        Functions.forEachItemIn(Arrays.asList(models.getModelAttributeNames())).apply(Functions.Print());
     }
 
     protected static void testAPI(String msg) 

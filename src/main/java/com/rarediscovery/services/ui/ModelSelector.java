@@ -5,11 +5,11 @@
  */
 package com.rarediscovery.services.ui;
 
-import com.rarediscovery.services.filters.SearchRequest;
+import com.rarediscovery.services.filters.SearchQuery;
 
 import com.rarediscovery.services.filters.SearchResult;
-import com.rarediscovery.services.filters.SearchResult.Model;
-import com.rarediscovery.services.filters.SearchResult.Models;
+import com.rarediscovery.data.Model;
+import com.rarediscovery.data.Models;
 import com.rarediscovery.services.filters.StringFilter;
 import com.rarediscovery.services.logic.Functions;
 import static com.rarediscovery.services.logic.Functions.log;
@@ -86,7 +86,7 @@ public class ModelSelector extends javax.swing.JPanel {
         String msg  = reader.convertPDFToString();
         
         // Construct the Search Request
-        SearchRequest  request = new SearchRequest("PROCESS FLOW STREAM RECORD");
+        SearchQuery  request = new SearchQuery("PROCESS FLOW STREAM RECORD");
         request.readFrom(2)
                .readTo(30) //12
                .setFieldColumn(1)
@@ -94,10 +94,10 @@ public class ModelSelector extends javax.swing.JPanel {
         
         SearchResult result = new StringFilter()
                 .given(msg)
-                .find(request);
+                .execute(request);
         
          // Save the models in memory
-        inMemoryModels = result.buildModels();
+        inMemoryModels = result.buildStreamInformationModels();
         
         // Process the result
         Model firstModel = null ;

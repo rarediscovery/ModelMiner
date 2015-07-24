@@ -3,16 +3,18 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.rarediscovery.services.ui;
+package com.rarediscovery.ui;
 
+import com.rarediscovery.services.ui.PageIO;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.Toolkit;
 import javax.swing.JFrame;
+import javax.swing.JPanel;
 
 /**
  *
- * @author usaa_developer
+ * @author Temitope Ajagbe
  */
 public class GenericWindow 
 {
@@ -20,6 +22,7 @@ public class GenericWindow
     protected JFrame applicationWindow;
     final PageIO pageIO;
     String title ;
+    JPanel content;
 
     public GenericWindow() {
         pageIO = new PageIO();
@@ -59,14 +62,25 @@ public class GenericWindow
         
         aFrame.setPreferredSize(MINI);
         aFrame.setVisible(true);
-        //aFrame.setContentPane(desktopPane);
+        //aFrame.setLocationRelativeTo(null);
         aFrame.pack();
        
         return aFrame;
    }
      
+    public void showContentAs(JPanel jp)
+    {
+        content = jp;
+        getWindow().getContentPane().add(content);
+        refresh();
+    }
+    
     public GenericWindow refresh()
     {
+       if (content != null)
+       {
+         content.repaint();
+       } 
        this.getWindow().pack();
        this.getWindow().repaint();
        return this;

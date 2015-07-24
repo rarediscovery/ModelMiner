@@ -149,23 +149,28 @@ public class StringFilter implements Filter
         return finalResult.toString();
     }    
     
-    public SearchResult find(SearchRequest...queryItems)
+    /**
+     * Find the line numbers in data file where search query matched the line item <br>
+     * 
+     * @param query
+     * @return 
+     */
+    public SearchResult execute(SearchQuery query)
     {
-               
+        // DEBUG
+        log(" Started query execution  ... ");
+       
         String[] lineNumberedTexts = getNumberLinedContent();
+        
+        int dataLength = lineNumberedTexts.length;
+        log(" ***   # of records in datasource : " + dataLength);
         
         // Build search result
         SearchResult searchResult = new SearchResult(lineNumberedTexts);
         
         // Use just the first query
-        searchResult.setRequest(queryItems[0]);
-        
-        int dataLength = lineNumberedTexts.length;
-        log(" *** Number of Lines for Input Data = " + dataLength);
-              
-        // Number of attributes needed to match
-        String[] queries = new String[queryItems.length];
-        
+        searchResult.queryIs(query);
+               
         Integer currentLineNumber=0;
         
         // Process every line
@@ -173,21 +178,18 @@ public class StringFilter implements Filter
         {
             // Check all input queries
             String currentText = lineItem.toLowerCase().trim();
-            for(int k=0;k< queries.length;k++)
+            String key = query.getKeyword().toLowerCase().trim();
+                
+            // ------------------------------------------
+            // Perform case-insensitive match and 
+            // record index of lineitem that was matched
+            // ------------------------------------------
+                
+            if (currentText.contains(key))
             {
-                String key = queryItems[k].getSearchValue().toLowerCase().trim();
-                
-                // ------------------------------------------
-                // Perform case-insensitive match and 
-                // record index of lineitem that was matched
-                // ------------------------------------------
-                
-                if (currentText.contains(key))
-                {
-                   searchResult.add(key,currentLineNumber);
-                }
+               searchResult.add(currentLineNumber);
             }
-            
+                      
             //Next item in line
             currentLineNumber++;
         }

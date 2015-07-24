@@ -5,16 +5,15 @@
  */
 package com.rarediscovery.services.filters;
 
+import com.rarediscovery.data.Models;
+import com.rarediscovery.data.Model;
 import com.rarediscovery.services.logic.Functions;
-import static com.rarediscovery.services.logic.Functions.join;
+import static com.rarediscovery.services.logic.Functions.*;
+
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 
 /**
@@ -23,228 +22,183 @@ import java.util.Set;
  */
 public class SearchResult 
 {
-    SearchRequest request;
-    Map<String,List<Integer>> items;
+    SearchQuery searchQuery;
+    List<Integer> result;
     String[] lineNumberedTexts;
     
 
     public SearchResult(String[] lnt) 
     {
-        items = new HashMap<>();
+        result = new ArrayList<>();
         lineNumberedTexts = lnt;
     }
 
-    public void setRequest(SearchRequest req) {
-        this.request = req;
+    public void queryIs(SearchQuery req) {
+        this.searchQuery = req;
     }
 
+    public SearchQuery getQuery() 
+    {
+        return searchQuery;
+    }
     
     private String[] getLineNumberedTexts() {
         return lineNumberedTexts;
     }
     
-    public void add(String k , int v)
+    public void add( int v)
     {
-        if ( k == null || v < 0) {return ;}
+        if (  v < 0) {return ;}
+        result.add(v);
+    }
+    
+    public List<Integer> getResult()
+    {
+       return result;
+    }
+    
         
-        if (items.get(k) == null )
+    /**
+     * Generate Models for the Search searchQuery <br>
+     * @return Collection of Models
+     */
+    public Models buildStreamInformationModels()
+    {
+         Models listOfModels = new Models();
+                   
+        // How many categories are we expecting per line ? 
+        int entitiesToCreate = searchQuery.getCriteria().getUniqueEntities();
+
+        // List of matched result for the search string = result.get(k)
+        // Get Model IDs 
+        for(int lineNumber : result)
         {
-           items.put(k, new ArrayList<Integer>());
-        }
-        
-        items.get(k).add(v);
+            Model[] models  = createEntities(lineNumber, entitiesToCreate);
+            listOfModels.addModels(Arrays.asList(models));
+        }            
+          
+        return listOfModels;
     }
+
     
-    public List<Integer> get(String k)
+     /**
+     * Generate Models for the Search searchQuery <br>
+     * @return Collection of Models
+     */
+    public Models buildCustomModels(TextParser parser)
     {
-       return items.get(k) == null ? Collections.EMPTY_LIST : items.get(k);
-    }
-    
-    public String getResultFor(String k)
-    {
-       StringBuffer  buffer = new StringBuffer();
+        Models customModels = new Models();
        
-       if (k == null || get(k) == null){ return "" ;}
-       
-       for(int i : get(k))
-       {
-          buffer.append(getLineNumberedTexts()[i] + "\n");
-       }
-       return buffer.toString();
-    }
-    public Set<String> getSearchKeys()
-    {
-       return items.keySet();
-    }
-    
-    public class Models
-    {
-        //List<Model> list;
-        Map<String,Model> modelMap;
-
-        public Models() {
-            //this.list = new ArrayList<>();
-            this.modelMap = new HashMap<>();
-        }
-       
-        public String[] getColumnNames()
+        // List of matched result for the search string = result.get(k)
+        // Get Model IDs 
+        for(int lineNumber : result)
         {
-            Iterator<String> it = modelMap.keySet().iterator();
-            if (it.hasNext())
+            int start =lineNumber + getQuery().getCriteria().readFrom();
+            int stop = lineNumber + getQuery().getCriteria().stopAt();
+
+            List<Integer> skipList = new ArrayList<>();
+            for(int x=0;x<getQuery().getCriteria().recordsToSkip().size();x++)
             {
-                String key = it.next();
-                Model m = modelMap.get(key);
-                return m.getAttributeNames().toArray(new String[0]);
+                skipList.add(lineNumber + getQuery().getCriteria().recordsToSkip().get(x));
             }
-            return new String[]{"","",""};
-        }
-        
-        public void addModel(Model m)
-        {
-           if (m != null)
-           {
-              //list.add(m);
-              modelMap.put(m.getID(), m);
-           }
-        }
-        
-         public void addModels(List<Model> ms)
-        {
-           if (ms != null)
-           {
-              //list.addAll(ms);
-               for(Model m: ms)
-               {
-                 modelMap.put(m.getID(), m);
-               }
-           }
-        }
-
-        public Model get(String id)
-        {
-           return modelMap.get(id);
-        }
-         
-        public List<Model> getAll() {
-            
-            List<Model> list = new ArrayList<>();
-            for(Model d : modelMap.values())
+                  
+            String[] attributes = null ;
+            if (getQuery().getCriteria().hasFieldIdentifier())
             {
-              list.add(d);
-            }
-            return list;
-        }
-        
-        public List<Model> getModels(List<String> l) {
-            
-            List<Model> list = new ArrayList<>();
-            for(String s : l)
-            {
-                if (modelMap.get(s) != null)
-                {
-                  list.add(modelMap.get(s));
-                }
-            }
-            return list;
-        }
-         
-    }
-    
-    public class Model
-    {
-        String id;
-        Map<String,String> attributes;
-        
-        public Model(String id) {
-            this.id = id;
-            attributes = new HashMap<>();
-        }
-
-        public String getID() {
-            return id;
-        }
-
-        public Set<String> getAttributeNames() {
-            return attributes.keySet();
-        }
-      
-        public void add(String k,String v)
-        {
-            attributes.put(k, v);
-        }
-
-        public String get(String key)
-        {
-          return attributes.get(key);
-        }
-         
-        @Override
-        public String toString() {
-            
-            StringBuffer buffer = new StringBuffer();
-            buffer.append("{");
-            buffer.append("id :" + getID()+ ";");
-            for(String word : getAttributeNames())
-            {
-               buffer.append(word + " : " + attributes.get(word)+ ";");
-            }
-            
-            buffer.append("}");
-            return buffer.toString(); 
-        }
+                int fieldNames = lineNumber + getQuery().getCriteria().getFieldIdentifierRecord();
                 
+                String f = deflate(getLineNumberedTexts()[fieldNames]);
+                log(" Fields names : " + f);
+                
+                attributes = f.split(" ");
+            }
+
+            String data = joinWithGaps(
+                            getLineNumberedTexts(), 
+                            start, stop, 
+                            skipList,
+                            RemoveCarriageReturns , RemoveDoubleSpaces);
+            
+            String skippedData = Functions.joinSelection(getLineNumberedTexts(),skipList);
+            
+            //Debug
+            log(data);
+            
+            parser.setData(data);
+            parser.setHeader(attributes);
+            parser.setSkippedData(skippedData);
+            
+            List<Model> models = parser.apply();
+            
+            //log("# of Models found :: " + models.size());
+            customModels.addModels(models);
+        }    
+
+        log("Total # of Models found :: " + customModels.getAll().size());
+          
+        
+        return customModels;
     }
     
     /**
-     * Generate Models for the Search request <br>
-     * @return Collection of Models
+     * This method builds the relationship between the attributes found 
+     * and how to relate them as valid property
+     * 
+     * 
+     * @param lineNumber
+     * @param numberOfModels
+     * @return 
      */
-    public Models buildModels()
+    protected Model[] createEntities(int lineNumber, int numberOfModels) 
     {
-         Models listOfModels = new Models();
-                 
-        // For each group of data item
-        for(String key: getSearchKeys())
+         Model[] models = createModels(numberOfModels, lineNumber);
+        
+        int nextGap = -1;
+        List<Integer> gaps = searchQuery.getCriteria().recordsToSkip();
+        Iterator<Integer> gapsIterator = gaps.iterator();
+        
+        if ( gaps.iterator().hasNext())
         {
-            log("Search Key : " + key + "  - Number of Matches Found : "+ get(key).size());
-            log("************************************************");
-            
-            // How many categories are we expecting per line ? 
-            int number_of_models = request.getCategories();
-                       
-            // List of matched items for the search string = items.get(k)
-            // Get Model IDs 
-            for(int lineNumber : items.get(key))
-            {
-                Model[] models  = addDataToModel(lineNumber, number_of_models);
-                listOfModels.addModels(Arrays.asList(models));
-            }            
-        }   
-        
-        return listOfModels;
-        
-    }
-
-    protected Model[] addDataToModel(int lineNumber, int number_of_models) 
-    {
-         Model[] models = createModels(number_of_models, lineNumber);
-        
+            nextGap =  gapsIterator.next();
+        }
          
-        // Get all attributes of this model as specified by the SearchRequest
-        for(int c = lineNumber+ request.getStartLine();c< lineNumber+request.getStopLine();c++)
+         
+        // Get all attributes of this model as specified by the SearchQuery
+        int startIndex = lineNumber+ searchQuery.getCriteria().readFrom();
+        int stopIndex  = lineNumber+searchQuery.getCriteria().stopAt();
+        
+        for(int c = startIndex; c <= stopIndex; c++)
         {
+             String t = getLineNumberedTexts()[c];
+            
+             //Skip ignore line
+            if ( c == lineNumber + nextGap)
+            {
+                 //@ignore
+                 //log("*** "+ dataArray[i]);
+                                  
+                if (! gaps.isEmpty() && gapsIterator.hasNext())
+                {
+                   nextGap =  gapsIterator.next();
+                }
+                
+                //Debug
+                //log(" -- IGNORE--  " + t);
+                continue;
+            }
+            
             // Get Element[i] for all Models
             
-            String t = getLineNumberedTexts()[c];
-            String[] dataFields = Functions.deflate(t.trim()).split(" ");
-            int data_offset = dataFields.length - number_of_models;
+           
+            String[] dataFields = deflate(t.trim()).split(" ");
+            int data_offset = dataFields.length - numberOfModels;
             
-            if (dataFields.length < number_of_models)
+            if (dataFields.length < numberOfModels)
             {
                 continue;
             }
             
-            for(int vIndex=0;vIndex<number_of_models;vIndex++)
+            for(int vIndex=0;vIndex<numberOfModels;vIndex++)
             {
                 models[vIndex].add(join(dataFields, 0,data_offset-1), dataFields[data_offset + vIndex]);
             }
@@ -270,8 +224,8 @@ public class SearchResult
         Model[] models = new Model[N];
         
         // Locate the record or line where the fields names are defined
-        String columnNamesRecord = getLineNumberedTexts()[index+ request.getFieldColumn()];
-        String[] columnFields = Functions.deflate(columnNamesRecord).split(" ");
+        String columnNamesRecord = getLineNumberedTexts()[index+ searchQuery.getCriteria().getFieldIdentifierRecord()];
+        String[] columnFields = deflate(columnNamesRecord).split(" ");
         int offset = columnFields.length - N;
         
         for(int mIndex=0;mIndex<N;mIndex++)
@@ -281,8 +235,10 @@ public class SearchResult
         }
         return models;
     }
+
+   
     
-    private static void log(String from) {
-        System.out.println(from);
-    }
+   
+
+    
 }
